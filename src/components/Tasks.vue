@@ -124,7 +124,7 @@ export default {
   align-items: center;
 
   padding: 10px;
-  background-color: #3094d2;
+  background-color: #1a1c1d;
 }
 
 .card-header-logo {
@@ -178,7 +178,7 @@ export default {
 }
 
 .tasks .task-card .icon:hover {
-  color: #3094d2;
+  color: #08b071;
   cursor: pointer;
 }
 </style>
