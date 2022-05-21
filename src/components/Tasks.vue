@@ -19,30 +19,39 @@
         <hr />
 
         <b-tabs no-fade card fill v-model="tabIndex" content-class="mt-3">
-          <b-tab title="A FAZER" active :title-link-class="linkClass(0)">
+          <b-tab
+            title="A FAZER"
+            @click="getTasks({ completed: false })"
+            active
+            :title-link-class="linkClass(0)"
+          >
             <div class="tasks">
-              <div
-                v-for="(task, idx) in uncompletedTasks"
-                :key="idx"
-                class="task-card"
-              >
-                {{ task.description }}
+              <b-spinner
+                v-if="isLoading"
+                variant="secondary"
+                style="margin-top: 15px"
+              ></b-spinner>
 
-                <b-icon
-                  @click="markAsComplete(task.id)"
-                  icon="check-circle-fill"
-                  class="icon"
-                ></b-icon>
+              <div v-if="!isLoading">
+                <div v-for="(task, idx) in tasks" :key="idx" class="task-card">
+                  {{ task.description }}
+
+                  <b-icon
+                    @click="markAsComplete(task.id)"
+                    icon="check-circle-fill"
+                    class="icon"
+                  ></b-icon>
+                </div>
               </div>
             </div>
           </b-tab>
-          <b-tab title="CONCLUÍDOS" :title-link-class="linkClass(1)">
+          <b-tab
+            title="CONCLUÍDOS"
+            @click="getTasks({ completed: true })"
+            :title-link-class="linkClass(1)"
+          >
             <div class="tasks">
-              <div
-                v-for="(task, idx) in completedTasks"
-                :key="idx"
-                class="task-card"
-              >
+              <div v-for="(task, idx) in tasks" :key="idx" class="task-card">
                 {{ task.description }}
 
                 <b-icon
@@ -61,21 +70,18 @@
 </template>
 
 <script>
+import TasksService from "@/services/tasks.sevice";
+
 export default {
   data: () => ({
     task: null,
-    tasks: [{ id: 1, description: "Atividade 1", completed: false }],
+    tasks: [],
     tabIndex: 0,
+    isLoading: false,
   }),
   computed: {
     canShowInput() {
       return this.tabIndex != 1;
-    },
-    completedTasks() {
-      return this.tasks.filter((task) => task.completed);
-    },
-    uncompletedTasks() {
-      return this.tasks.filter((task) => !task.completed);
     },
   },
   methods: {
@@ -109,6 +115,26 @@ export default {
       const idx = this.tasks.findIndex((task) => task.id == id);
       this.tasks.splice(idx, 1);
     },
+    getTasks(params = {}) {
+      this.isLoading = true;
+
+      TasksService.getTasks(params)
+        .then(({ data }) => {
+          this.tasks = data;
+        })
+        .catch(() => {
+          this.$bvToast.toast("Erro ao buscar registro de atividades", {
+            solid: true,
+            title: "Erro",
+            variant: "danger",
+            toaster: "b-toaster-top-center",
+          });
+        })
+        .finally(() => (this.isLoading = false));
+    },
+  },
+  mounted() {
+    this.getTasks({ completed: false });
   },
 };
 </script>
@@ -147,7 +173,7 @@ export default {
 .tasks {
   height: 275px;
   overflow-y: auto;
-
+  text-align: center;
   scroll-padding-left: 15px;
 }
 
