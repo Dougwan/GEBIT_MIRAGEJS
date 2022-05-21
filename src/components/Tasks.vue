@@ -21,7 +21,7 @@
         <b-tabs no-fade card fill v-model="tabIndex" content-class="mt-3">
           <b-tab
             title="A FAZER"
-            @click="getTasks({ completed: false })"
+            @click="getTasks({ completed: 0 })"
             active
             :title-link-class="linkClass(0)"
           >
@@ -32,7 +32,11 @@
                 style="margin-top: 15px"
               ></b-spinner>
 
-              <div v-if="!isLoading">
+              <div v-if="!isLoading && !tasks.length">
+                Nenhum registro encontrado
+              </div>
+
+              <div v-if="!isLoading && tasks.length">
                 <div v-for="(task, idx) in tasks" :key="idx" class="task-card">
                   {{ task.description }}
 
@@ -47,19 +51,31 @@
           </b-tab>
           <b-tab
             title="CONCLUÍDOS"
-            @click="getTasks({ completed: true })"
+            @click="getTasks({ completed: 1 })"
             :title-link-class="linkClass(1)"
           >
             <div class="tasks">
-              <div v-for="(task, idx) in tasks" :key="idx" class="task-card">
-                {{ task.description }}
+              <b-spinner
+                v-if="isLoading"
+                variant="secondary"
+                style="margin-top: 15px"
+              ></b-spinner>
 
-                <b-icon
-                  @click="deleteTask(task.id)"
-                  icon="trash-fill"
-                  class="icon"
-                  variant="danger"
-                ></b-icon>
+              <div v-if="!isLoading && !tasks.length">
+                Nenhum registro encontrado
+              </div>
+
+              <div v-if="!isLoading && tasks.length">
+                <div v-for="(task, idx) in tasks" :key="idx" class="task-card">
+                  {{ task.description }}
+
+                  <b-icon
+                    @click="deleteTask(task.id)"
+                    icon="trash-fill"
+                    class="icon"
+                    variant="danger"
+                  ></b-icon>
+                </div>
               </div>
             </div>
           </b-tab>
@@ -74,7 +90,7 @@ import TasksService from "@/services/tasks.sevice";
 
 export default {
   data: () => ({
-    task: null,
+    task: "",
     tasks: [],
     tabIndex: 0,
     isLoading: false,
@@ -93,7 +109,7 @@ export default {
       }
     },
     onKeyDown(event) {
-      if (event.keyCode === 13 && this.task) {
+      if (event.keyCode === 13 && this.task.length) {
         this.createTask();
       }
     },
@@ -108,19 +124,24 @@ export default {
       this.task = null;
     },
     markAsComplete(id) {
-      const idx = this.tasks.findIndex((task) => task.id == id);
-      this.tasks[idx].completed = true;
+      TasksService.markAsComplete(id).then(({ data }) => {
+        const { tasks } = data;
+        this.tasks = tasks;
+      });
     },
     deleteTask(id) {
-      const idx = this.tasks.findIndex((task) => task.id == id);
-      this.tasks.splice(idx, 1);
+      TasksService.deleteTask(id).then(({ data }) => {
+        const { tasks } = data;
+        this.tasks = tasks;
+      });
     },
     getTasks(params = {}) {
       this.isLoading = true;
 
       TasksService.getTasks(params)
         .then(({ data }) => {
-          this.tasks = data;
+          const { tasks } = data;
+          this.tasks = tasks;
         })
         .catch(() => {
           this.$bvToast.toast("Erro ao buscar registro de atividades", {
@@ -134,7 +155,7 @@ export default {
     },
   },
   mounted() {
-    this.getTasks({ completed: false });
+    this.getTasks({ completed: 0 });
   },
 };
 </script>
