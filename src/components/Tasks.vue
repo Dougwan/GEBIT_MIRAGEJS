@@ -5,34 +5,56 @@
         <div class="card-header-logo">
           <img src="@/assets/logo.png" />
         </div>
-        <h5 class="card-title">ITEMS A FAZER</h5>
       </div>
       <div class="card-body">
         <div>
           <b-form-input
             @keydown="onKeyDown"
             v-model="task"
+            :disabled="!canShowInput"
             placeholder="Qual a atividade?"
             prepend-html='<i class="fa fa-pencil"></i>'
           ></b-form-input>
         </div>
         <hr />
-        <div class="tasks">
-          <div class="card">
-            <div v-for="(task, idx) in tasks" :key="idx" class="card-body">
+
+        <b-tabs no-fade card fill v-model="tabIndex" content-class="mt-3">
+          <b-tab title="A FAZER" active :title-link-class="linkClass(0)">
+            <div class="tasks">
               <div
-                class="task"
-                style="display: flex; justify-content: space-between"
+                v-for="(task, idx) in uncompletedTasks"
+                :key="idx"
+                class="task-card"
               >
                 {{ task.description }}
 
-                <p class="h5">
-                  <b-icon icon="trash-fill" variant="danger"></b-icon>
-                </p>
+                <b-icon
+                  @click="markAsComplete(task.id)"
+                  icon="check-circle-fill"
+                  class="icon"
+                ></b-icon>
               </div>
             </div>
-          </div>
-        </div>
+          </b-tab>
+          <b-tab title="CONCLUÍDOS" :title-link-class="linkClass(1)">
+            <div class="tasks">
+              <div
+                v-for="(task, idx) in completedTasks"
+                :key="idx"
+                class="task-card"
+              >
+                {{ task.description }}
+
+                <b-icon
+                  @click="deleteTask(task.id)"
+                  icon="trash-fill"
+                  class="icon"
+                  variant="danger"
+                ></b-icon>
+              </div>
+            </div>
+          </b-tab>
+        </b-tabs>
       </div>
     </div>
   </div>
@@ -41,14 +63,51 @@
 <script>
 export default {
   data: () => ({
-    task: "",
-    tasks: [{ id: 1, description: "Atividade 1", done: false }],
+    task: null,
+    tasks: [{ id: 1, description: "Atividade 1", completed: false }],
+    tabIndex: 0,
   }),
+  computed: {
+    canShowInput() {
+      return this.tabIndex != 1;
+    },
+    completedTasks() {
+      return this.tasks.filter((task) => task.completed);
+    },
+    uncompletedTasks() {
+      return this.tasks.filter((task) => !task.completed);
+    },
+  },
   methods: {
-    onKeyDown(event) {
-      if (event.keyCode === 13) {
-        console.log(this.task);
+    linkClass(idx) {
+      if (this.tabIndex === idx) {
+        return ["text-dark"];
+      } else {
+        return ["bg-light", "text-dark"];
       }
+    },
+    onKeyDown(event) {
+      if (event.keyCode === 13 && this.task) {
+        this.createTask();
+      }
+    },
+    createTask() {
+      const lastIdx = this.tasks[this.tasks.length - 1].id;
+
+      this.tasks.push({
+        id: lastIdx + 1,
+        description: this.task,
+        completed: false,
+      });
+      this.task = null;
+    },
+    markAsComplete(id) {
+      const idx = this.tasks.findIndex((task) => task.id == id);
+      this.tasks[idx].completed = true;
+    },
+    deleteTask(id) {
+      const idx = this.tasks.findIndex((task) => task.id == id);
+      this.tasks.splice(idx, 1);
     },
   },
 };
@@ -61,7 +120,8 @@ export default {
 
 .card-header {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: center;
 
   padding: 10px;
   background-color: #3094d2;
@@ -73,6 +133,7 @@ export default {
   border-radius: 50%;
   background: #fff;
   display: flex;
+
   justify-content: center;
   align-items: center;
 }
@@ -83,15 +144,41 @@ export default {
   border-radius: 50%;
 }
 
-.card-title {
-  font-size: 1.8rem;
-  color: #fff;
-  letter-spacing: 1px;
+.tasks {
+  height: 275px;
+  overflow-y: auto;
 
-  margin-left: 10px;
+  scroll-padding-left: 15px;
 }
 
-.tasks .card {
+.tasks::-webkit-scrollbar-track {
+  background-color: #f5f5f5;
+}
+.tasks::-webkit-scrollbar {
+  width: 0vw;
+  background-color: #f5f5f5;
+}
+
+.tasks .task-card {
   width: 100%;
+  height: 50px;
+  padding: 3%;
+  background-color: #f8f9fa;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 10px;
+}
+
+.tasks .task-card .icon {
+  font-size: 1.3rem;
+  color: grey;
+}
+
+.tasks .task-card .icon:hover {
+  color: #3094d2;
+  cursor: pointer;
 }
 </style>
