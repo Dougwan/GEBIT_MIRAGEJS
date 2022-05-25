@@ -114,14 +114,22 @@ export default {
       }
     },
     createTask() {
-      const lastIdx = this.tasks[this.tasks.length - 1].id;
+      TasksService.createTask({ description: this.task, completed: false })
+        .then(({ data }) => {
+          const { tasks } = data;
+          this.tasks = tasks;
+          this.task = null;
+        })
+        .catch(({ data }) => {
+          const { errors } = data;
 
-      this.tasks.push({
-        id: lastIdx + 1,
-        description: this.task,
-        completed: false,
-      });
-      this.task = null;
+          this.$bvToast.toast(errors[0], {
+            solid: true,
+            title: "Erro ao tentar salvar atividade",
+            variant: "danger",
+            toaster: "b-toaster-top-center",
+          });
+        });
     },
     markAsComplete(id) {
       TasksService.markAsComplete(id).then(({ data }) => {
@@ -144,9 +152,9 @@ export default {
           this.tasks = tasks;
         })
         .catch(() => {
-          this.$bvToast.toast("Erro ao buscar registro de atividades", {
+          this.$bvToast.toast("Um erro inesperado aconteceu", {
             solid: true,
-            title: "Erro",
+            title: "Erro ao buscar registro de atividades",
             variant: "danger",
             toaster: "b-toaster-top-center",
           });

@@ -1,4 +1,4 @@
-import { createServer, Factory, Model } from "miragejs";
+import { createServer, Factory, Model, Response } from "miragejs";
 
 export default function () {
   createServer({
@@ -35,6 +35,23 @@ export default function () {
         };
       });
 
+      this.post("/tasks", async (schema, request) => {
+        const attrs = JSON.parse(request.requestBody);
+        if (attrs.description.length <= 3) {
+          return response(422, {}, [
+            "A descrição da atividade precisa ter mais que 3 caracteres",
+          ]);
+        } else {
+          schema.tasks.create({ ...attrs });
+        }
+
+        return {
+          tasks: await schema.tasks.where({
+            completed: false,
+          }).models,
+        };
+      });
+
       this.patch("/tasks/:id", async (schema, request) => {
         const model = schema.tasks.find(request.params.id);
         model.update({ completed: true });
@@ -58,4 +75,8 @@ export default function () {
       });
     },
   });
+}
+
+function response(statusCode, headers = {}, errors = []) {
+  return new Response(statusCode, headers, { errors });
 }

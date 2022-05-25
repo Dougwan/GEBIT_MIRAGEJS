@@ -4,6 +4,9 @@ export default {
   getTasks: (params = {}) => {
     return Api.get("/api/tasks", { params });
   },
+  createTask: (data) => {
+    return Api.post("/api/tasks", data);
+  },
   markAsComplete: (taskId) => {
     return Api.patch(`/api/tasks/${taskId}`);
   },
