@@ -29,7 +29,7 @@
               <b-spinner
                 v-if="isLoading"
                 variant="secondary"
-                style="margin-top: 15px"
+                class="spinner"
               ></b-spinner>
 
               <div v-if="!isLoading && !tasks.length">
@@ -58,7 +58,7 @@
               <b-spinner
                 v-if="isLoading"
                 variant="secondary"
-                style="margin-top: 15px"
+                class="spinner"
               ></b-spinner>
 
               <div v-if="!isLoading && !tasks.length">
@@ -206,6 +206,9 @@ export default {
   scroll-padding-left: 15px;
 }
 
+.tasks .spinner {
+  margin-top: 15px;
+}
 .tasks::-webkit-scrollbar-track {
   background-color: #f5f5f5;
 }
