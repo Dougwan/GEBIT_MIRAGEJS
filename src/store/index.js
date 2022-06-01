@@ -1,10 +1,12 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import Server from "@/server/server.js";
+import createServer from "@/server/server.js";
 
 Vue.use(Vuex);
 
-Server();
+if (process.env.NODE_ENV === "development") {
+  createServer();
+}
 
 export default new Vuex.Store({
   state: {},

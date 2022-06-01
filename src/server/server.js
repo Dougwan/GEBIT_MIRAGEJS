@@ -1,7 +1,8 @@
 import { createServer, Factory, Model, Response } from "miragejs";
 
-export default function () {
+export default function (environment = "development") {
   createServer({
+    environment,
     models: {
       task: Model.extend({}),
     },
@@ -73,6 +74,8 @@ export default function () {
           }).models,
         };
       });
+
+      // this.passthrough("http://localhost:3000/api/tasks", ["get"]);
     },
   });
 }
